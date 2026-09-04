@@ -1,0 +1,158 @@
+.lrtc-webp-wrap {
+	max-width: 52rem;
+}
+
+.lrtc-webp-lead {
+	max-width: 40rem;
+	font-size: 14px;
+}
+
+.lrtc-webp-status {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 12px 0 16px;
+}
+
+.lrtc-webp-card {
+	flex: 1 1 220px;
+	max-width: 280px;
+	padding: 12px 14px;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.lrtc-webp-card h3 {
+	margin: 0 0 6px;
+	font-size: 14px;
+}
+
+.lrtc-webp-card p {
+	margin: 0;
+}
+
+.lrtc-webp-card.is-ok {
+	border-color: #00a32a;
+	box-shadow: inset 3px 0 0 #00a32a;
+}
+
+.lrtc-webp-card.is-missing {
+	border-color: #dba617;
+	box-shadow: inset 3px 0 0 #dba617;
+}
+
+.lrtc-webp-wrap--spruce .lrtc-webp-card {
+	border-radius: 2px;
+}
+
+.lrtc-webp-wrap .toggle-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	position: relative;
+}
+
+.lrtc-webp-wrap .toggle-switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+	margin: 0;
+	position: absolute;
+}
+
+.lrtc-webp-wrap .toggle-switch .slider {
+	flex-shrink: 0;
+	width: 50px;
+	height: 24px;
+	position: relative;
+	background-color: #ccc;
+	transition: .4s;
+	border-radius: 24px;
+	cursor: pointer;
+}
+
+.lrtc-webp-wrap .toggle-switch .slider:before {
+	position: absolute;
+	content: "";
+	height: 18px;
+	width: 18px;
+	left: 3px;
+	bottom: 3px;
+	background-color: #fff;
+	transition: .4s;
+	border-radius: 50%;
+}
+
+.lrtc-webp-wrap .toggle-switch input:checked + .slider {
+	background-color: #2271b1;
+}
+
+.lrtc-webp-wrap .toggle-switch input:checked + .slider:before {
+	transform: translateX(26px);
+}
+
+.lrtc-webp-wrap .toggle-switch input:disabled + .slider {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.lrtc-webp-wrap .toggle-switch input:focus-visible + .slider {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.lrtc-webp-wrap .toggle-label {
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.lrtc-webp-library {
+	margin-top: 2.5em;
+	padding-top: 1.5em;
+	border-top: 1px solid #c3c4c7;
+	max-width: 40rem;
+}
+
+.lrtc-webp-library-count {
+	margin-left: 8px;
+	color: #646970;
+}
+
+.lrtc-webp-progress {
+	margin-top: 12px;
+}
+
+.lrtc-webp-progress-bar {
+	height: 12px;
+	background: #dcdcde;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.lrtc-webp-progress-bar span {
+	display: block;
+	height: 100%;
+	width: 0;
+	background: #2271b1;
+	transition: width .2s ease;
+}
+
+.lrtc-webp-progress-status {
+	margin: 8px 0;
+}
+
+.lrtc-webp-progress-log {
+	max-height: 16rem;
+	overflow: auto;
+	padding: 8px 12px;
+	margin: 0;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	list-style: disc;
+	padding-left: 1.5em;
+}
+
+.lrtc-webp-progress-log li {
+	margin: 0 0 4px;
+}
