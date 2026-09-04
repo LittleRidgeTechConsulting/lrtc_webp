@@ -12,9 +12,11 @@
 		$status.text(text);
 	}
 
-	function setProgress(processed, total) {
+	function setProgress(processed, total, done) {
 		var pct = 0;
-		if (total > 0) {
+		if (done) {
+			pct = 100;
+		} else if (total > 0) {
 			pct = Math.min(100, Math.round((processed / total) * 100));
 		}
 		$fill.css('width', pct + '%');
@@ -22,7 +24,7 @@
 	}
 
 	function renderJob(job) {
-		setProgress(job.processed || 0, job.total || 0);
+		setProgress(job.processed || 0, job.total || 0, !!job.done);
 		var parts = [];
 		parts.push((job.processed || 0) + ' / ' + (job.total || 0));
 		parts.push('converted ' + (job.converted || 0));
@@ -115,7 +117,7 @@
 		$start.prop('disabled', true);
 		$progress.removeAttr('hidden');
 		$log.empty();
-		setProgress(0, 1);
+		setProgress(0, 1, false);
 		setStatus(cfg.i18n.starting);
 
 		post('lrtc_webp_library_start')

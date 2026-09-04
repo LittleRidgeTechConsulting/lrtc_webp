@@ -149,10 +149,12 @@ class Library
 
         $new_url = self::path_to_url( $converted['file'] );
         wp_update_post(
-            array(
-                'ID'             => $id,
-                'post_mime_type' => 'image/webp',
-                'guid'           => $new_url,
+            wp_slash(
+                array(
+                    'ID'             => $id,
+                    'post_mime_type' => 'image/webp',
+                    'guid'           => $new_url,
+                )
             )
         );
 
@@ -214,7 +216,8 @@ class Library
             );
         }
 
-        $ids = self::candidate_ids( (int) $job['offset'], self::BATCH_SIZE );
+        $after_id = isset( $job['after_id'] ) ? (int) $job['after_id'] : 0;
+        $ids      = self::candidate_ids_after( $after_id, self::BATCH_SIZE );
         if ( empty( $ids ) ) {
             $job['done'] = 1;
             update_option( self::JOB_OPTION, $job, false );
@@ -222,7 +225,7 @@ class Library
         }
 
         foreach ( $ids as $id ) {
-            $job['offset']++;
+            $job['after_id'] = $id;
             $job['processed']++;
 
             $result = self::convert_attachment( $id );
@@ -266,7 +269,8 @@ class Library
         }
 
         $job['log'] = array_slice( $job['log'], -40 );
-        if ( $job['offset'] >= $job['total'] ) {
+        $more = self::candidate_ids_after( (int) $job['after_id'], 1 );
+        if ( empty( $more ) ) {
             $job['done'] = 1;
         }
 
@@ -292,29 +296,44 @@ class Library
     }
 
     /**
-     * @param int $offset
+     * Next convertible attachments after a given ID.
+     *
+     * Converted files change mime type and drop out of this query, so a numeric
+     * OFFSET would skip remaining images. Walk by ID instead.
+     *
+     * @param int $after_id
      * @param int $limit
      * @return array
      */
-    private static function candidate_ids( $offset, $limit ) {
-        $query = new \WP_Query(
-            array_merge(
-                self::candidate_args(),
-                array(
-                    'posts_per_page' => (int) $limit,
-                    'offset'         => (int) $offset,
-                    'fields'         => 'ids',
-                    'no_found_rows'  => true,
-                )
+    private static function candidate_ids_after( $after_id, $limit ) {
+        global $wpdb;
+
+        $ids = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts}
+                WHERE post_type = %s
+                AND post_status = %s
+                AND post_mime_type IN ( 'image/jpeg', 'image/jpg', 'image/png', 'image/gif' )
+                AND ID > %d
+                ORDER BY ID ASC
+                LIMIT %d",
+                'attachment',
+                'inherit',
+                (int) $after_id,
+                (int) $limit
             )
         );
 
-        $ids = array();
-        foreach ( $query->posts as $id ) {
-            $ids[] = (int) $id;
+        if ( ! is_array( $ids ) ) {
+            return array();
         }
 
-        return $ids;
+        $out = array();
+        foreach ( $ids as $id ) {
+            $out[] = (int) $id;
+        }
+
+        return $out;
     }
 
     /**
@@ -326,7 +345,7 @@ class Library
             'started'   => 1,
             'done'      => 0,
             'total'     => (int) $total,
-            'offset'    => 0,
+            'after_id'  => 0,
             'processed' => 0,
             'converted' => 0,
             'skipped'   => 0,
@@ -543,14 +562,26 @@ class Library
             if ( $content === $post->post_content && $guid === $post->guid ) {
                 continue;
             }
-            $update = array( 'ID' => (int) $id );
+            // Write through $wpdb. wp_update_post() unslashes and runs kses, which
+            // turns Divi 5 JSON "\u003c" into visible "u003c" and can strip markup.
+            $fields  = array();
+            $formats = array();
             if ( $content !== $post->post_content ) {
-                $update['post_content'] = $content;
+                $fields['post_content'] = $content;
+                $formats[]              = '%s';
             }
             if ( $guid !== $post->guid ) {
-                $update['guid'] = $guid;
+                $fields['guid'] = $guid;
+                $formats[]      = '%s';
             }
-            wp_update_post( $update );
+            $wpdb->update(
+                $wpdb->posts,
+                $fields,
+                array( 'ID' => (int) $id ),
+                $formats,
+                array( '%d' )
+            );
+            clean_post_cache( $id );
             $count++;
         }
 
@@ -797,6 +828,15 @@ class Library
             return;
         }
         $map[ $old ] = $new;
+
+        // Divi 5 / wp_json_encode store slashes as \/. A plain path does not match that.
+        if ( strpos( $old, '/' ) !== false && strpos( $old, '\\/' ) === false ) {
+            $esc_old = str_replace( '/', '\\/', $old );
+            $esc_new = str_replace( '/', '\\/', $new );
+            if ( $esc_old !== $old && $esc_old !== $esc_new ) {
+                $map[ $esc_old ] = $esc_new;
+            }
+        }
     }
 
     /**

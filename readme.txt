@@ -4,7 +4,7 @@ Tags: webp, images, media, performance, imagick
 Requires at least: 5.8
 Tested up to: 6.8
 Requires PHP: 7.0
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,10 +63,19 @@ That URL should still work because the original file is left in place. The plugi
 
 == Changelog ==
 
+= 0.1.1 =
+* Write library URL rewrites through the database so Divi 5 JSON is not unslashed or filtered.
+* Keep a stable photo.webp sibling instead of photo-1.webp on library convert.
+* Walk library batches by attachment ID so converted files are not skipped.
+* Rewrite JSON-escaped slashes in stored URLs.
+
 = 0.1.0 =
 * First release: server capability check, settings page, convert new uploads, and batched library conversion that keeps original files.
 
 == Upgrade Notice ==
+
+= 0.1.1 =
+Fixes library convert corrupting Divi 5 page JSON and skipping remaining images.
 
 = 0.1.0 =
 Initial release.

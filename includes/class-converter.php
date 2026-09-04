@@ -49,7 +49,14 @@ class Converter
 
         $dir      = dirname( $path );
         $basename = pathinfo( $path, PATHINFO_FILENAME );
-        $dest     = trailingslashit( $dir ) . wp_unique_filename( $dir, $basename . '.webp' );
+        $filename = $basename . '.webp';
+        // Library convert keeps the original, so the WebP must be a stable sibling
+        // (photo.webp next to photo.jpg). wp_unique_filename() would create photo-1.webp
+        // when that sibling already exists from a previous run, and rewrites then miss.
+        if ( $delete_original ) {
+            $filename = wp_unique_filename( $dir, $filename );
+        }
+        $dest = trailingslashit( $dir ) . $filename;
 
         $saved = $editor->save( $dest, 'image/webp' );
         if ( is_wp_error( $saved ) ) {
